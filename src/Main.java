@@ -1,37 +1,37 @@
-import java.util.concurrent.Semaphore;
-
 public class Main {
     public static void main(String[] args) {
+        int numPhilosophers = 3;
+        int howManyTimesShouldIEat = 3;
+        Philosopher[] philosophers = new Philosopher[numPhilosophers];
+        Fork[] forks = new Fork[numPhilosophers];
 
-        // Создаем 5 вилок (семафоров)
-        Semaphore[] forks = new Semaphore[5];
-        for (int i = 0; i < 5; i++) {
-            forks[i] = new Semaphore(1);
+        Thread[] threads = new Thread[numPhilosophers];
+        for (int i = 0; i < numPhilosophers; i++) {
+            forks[i] = new Fork(i);
         }
 
-        // Создаем 5 философов
-        Philosopher[] philosophers = new Philosopher[5];
-        philosophers[0] = new Philosopher("Философ 1", forks[0], forks[4]);
-        philosophers[1] = new Philosopher("Философ 2", forks[1], forks[0]);
-        philosophers[2] = new Philosopher("Философ 3", forks[2], forks[1]);
-        philosophers[3] = new Philosopher("Философ 4", forks[3], forks[2]);
-        philosophers[4] = new Philosopher("Философ 5", forks[4], forks[3]);
-
-        // Запускаем философов
-        for (Philosopher philosopher : philosophers) {
-            new Thread(philosopher).start();
+        for (int i = 0; i < numPhilosophers; i++) {
+            Fork leftFork = forks[i];
+            Fork rightFork = forks[(i + 1) % numPhilosophers];
+            philosophers[i] = new Philosopher(i, leftFork, rightFork);
+            threads[i] = new Thread(philosophers[i]);
+            threads[i].start();
         }
 
-        // Ожидаем, пока все философы не поедят три раза
-        for (Philosopher philosopher : philosophers) {
-            try {
-                philosopher.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+        try {
+            for (int i = 0; i < numPhilosophers; i++) {
+                threads[i].join();
+                if (!threads[i].isAlive()) {
+                    System.out.println("\n Философ " + i + " покушал " + howManyTimesShouldIEat + " раз(а) и наелся !) \n");
+                }
             }
+            System.out.println("\n Все Философы наелись!) \n");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
-        System.out.println("Все философы поели.");
+
     }
 }
 
